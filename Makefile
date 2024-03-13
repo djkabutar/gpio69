@@ -1,6 +1,3 @@
-CFLAGS = -Wall -Wextra -Iinclude
-LDFLAGS = -lgpio69
-
 OUT_DIR = bin
 
 SRC_PATH = lib
@@ -10,6 +7,9 @@ OBJS = $(patsubst $(SRC_PATH)/%.c, $(SRC_PATH)/%.o, $(SOURCES))
 EXP_PATH = examples
 EXP_SOURCES = $(wildcard $(EXP_PATH)/*.c)
 EXP_BINS = $(patsubst $(EXP_PATH)/%.c, $(EXP_PATH)/%, $(EXP_SOURCES))
+
+CFLAGS = -Wall -Wextra -Iinclude
+LDFLAGS = -L$(OUT_DIR) -lgpio69
 
 .PHONY: all install clean
 
