@@ -1,14 +1,14 @@
-#include <unistd.h>
+#include <stdio.h>
 
 #include <gpio69.h>
 
 int main(void) {
-	gpio_export("15");
-	gpio_set_direction("15", "out");
+	int fd = gpio_request_handle("/dev/gpiochip2", 11, GPIO_OUT);
 
-	gpio_set_value("15", "1");
-	sleep(1);
-	gpio_set_value("15", "0");
+	gpio_set_value(fd, 1);
+	sleep(0.01);
+	gpio_set_value(fd, 0);
+	sleep(0.01);
 
-	gpio_unexport("15");
+	gpio_release_handle(fd);
 }
