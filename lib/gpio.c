@@ -5,6 +5,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <sys/ioctl.h>
+
+#include <gpio69.h>
+
 int gpio_export(const char *pin)
 {
 	const char *exp = "/sys/class/gpio/export";
@@ -108,7 +112,7 @@ free_gpio:
 	free(gpio_direction);
 }
 
-void gpio_set_value(const char *pin, const char *value)
+void gpio_set_value_legacy(const char *pin, const char *value)
 {
 	const char *default_gpio = "/sys/class/gpio/gpio";
 	char *gpio_value = NULL;
@@ -138,7 +142,7 @@ free_gpio:
 	free(gpio_value);
 }
 
-int gpio_get_value(const char *pin)
+int gpio_get_value_legacy(const char *pin)
 {
 	const char *default_gpio = "/sys/class/gpio/gpio";
 	char *gpio_value = NULL;
@@ -169,4 +173,66 @@ free_gpio:
 	free(gpio_value);
 
 	return (value[0] == 0x31);
+}
+
+int gpio_request_handle(const char* gpiochip, unsigned int offset, int flags)
+{
+	struct gpiohandle_request req;
+	int fd = -1;
+	int ret = 0;
+
+	fd = open(gpiochip, O_RDONLY);
+	if (fd < 0)
+	{
+		perror("Failed to open gpiochip");
+		return fd;
+	}
+
+	req.lineoffsets[0] = offset;
+	req.lines = 1;
+	req.flags = flags;
+
+	ret = ioctl(fd, GPIO_GET_LINEHANDLE_IOCTL, &req);
+	if (ret == -1)
+	{
+		perror("Unable to get line handle");
+		close(fd);
+		return ret;
+	}
+
+	return req.fd;
+}
+
+int gpio_release_handle(int fd)
+{
+	close(fd);
+	return 0;
+}
+
+int gpio_set_value(int fd, unsigned char value)
+{
+	struct gpiohandle_data data;
+	int ret = 0;
+	data.values[0] = value;
+
+	ret = ioctl(fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+	if (ret == -1)
+		perror("Unable to set line value");
+
+	return ret;
+}
+
+int gpio_get_value(int fd)
+{
+	struct gpiohandle_data data;
+	int ret = 0;
+
+	ret = ioctl(fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL, &data);
+	if (ret == -1)
+	{
+		perror("Unable to get line value");
+		return ret;
+	}
+
+	return data.values[0];
 }
