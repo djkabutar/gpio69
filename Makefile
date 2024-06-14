@@ -19,7 +19,7 @@ bin:
 	if [ ! -d "$(OUT_DIR)" ]; then mkdir $(OUT_DIR); fi
 
 lib: $(OBJS)
-	$(CC) -shared $^ -o $(OUT_DIR)/libgpio69.so
+	$(CC) -shared -fPIC $^ -o $(OUT_DIR)/libgpio69.so
 
 examples: $(EXP_BINS)
 
